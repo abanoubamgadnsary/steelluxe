@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Root variables ── */
+:root {
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-dm-sans:   'DM Sans', system-ui, sans-serif;
+  --font-dm-mono:   'DM Mono', monospace;
+
+  --color-cream:    #FDFAF5;
+  --color-gold:     #B8860B;
+  --color-gold-light: #D4AF6C;
+  --color-charcoal: #1C1A17;
+  --color-text:     #2E2B26;
+  --color-muted:    #8C8780;
+
+  --transition-luxury: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-dm-sans);
+  background-color: var(--color-cream);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* ── Typography ── */
+.font-display { font-family: var(--font-cormorant); }
+h1, h2, h3 { font-family: var(--font-cormorant); font-weight: 400; letter-spacing: -0.01em; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #FAF5EB; }
+::-webkit-scrollbar-thumb  { background: #D4AF6C; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B8860B; }
+
+/* ── Selection ── */
+::selection { background: rgba(212,175,108,0.25); color: #1C1A17; }
+
+/* ── Focus ── */
+:focus-visible { outline: 2px solid #D4AF6C; outline-offset: 3px; border-radius: 3px; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn     { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideLeft  { from { opacity: 0; transform: translateX(24px);  } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideRight { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes shimmer    { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes float      { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes marquee    { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes spin-slow  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulse-gold { 0%,100% { box-shadow: 0 0 0 0 rgba(184,134,11,0.4); } 50% { box-shadow: 0 0 0 8px rgba(184,134,11,0); } }
+
+/* ── Utility classes ── */
+.animate-fade-up    { animation: fadeUp    0.6s var(--transition-luxury) forwards; }
+.animate-fade-in    { animation: fadeIn    0.4s var(--transition-luxury) forwards; }
+.animate-slide-left { animation: slideLeft 0.5s var(--transition-luxury) forwards; }
+.animate-marquee    { animation: marquee 30s linear infinite; }
+.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-spin-slow  { animation: spin-slow 8s linear infinite; }
+.animate-pulse-gold { animation: pulse-gold 2s infinite; }
+
+.animation-delay-100 { animation-delay: 0.1s; opacity: 0; }
+.animation-delay-200 { animation-delay: 0.2s; opacity: 0; }
+.animation-delay-300 { animation-delay: 0.3s; opacity: 0; }
+.animation-delay-400 { animation-delay: 0.4s; opacity: 0; }
+.animation-delay-500 { animation-delay: 0.5s; opacity: 0; }
+.animation-delay-600 { animation-delay: 0.6s; opacity: 0; }
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, #F5EDD8 25%, #EDE0C4 50%, #F5EDD8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+/* ── Gold button ── */
+.btn-gold {
+  background: linear-gradient(135deg, #D4AF6C 0%, #B8860B 50%, #9A6F0A 100%);
+  color: white;
+  transition: all 0.3s var(--transition-luxury);
+  box-shadow: 0 2px 8px rgba(184,134,11,0.25);
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(184,134,11,0.35);
+}
+.btn-gold:active { transform: translateY(0); }
+
+/* ── Glass effect ── */
+.glass {
+  background: rgba(253,250,245,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212,175,108,0.2);
+}
+
+/* ── Product card hover ── */
+.product-card { transition: all 0.4s var(--transition-luxury); }
+.product-card:hover { transform: translateY(-6px); }
+.product-card:hover .product-img { transform: scale(1.06); }
+.product-img { transition: transform 0.5s var(--transition-luxury); }
+
+/* ── Divider ── */
+.divider-gold {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #D4AF6C, transparent);
+}
+
+/* ── Gradient text ── */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4AF6C, #B8860B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── RTL support ── */
+[dir="rtl"] { font-family: 'Cairo', var(--font-dm-sans); }
+[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
+
+/* ── Page transitions ── */
+.page-enter { opacity: 0; transform: translateY(16px); }
+.page-enter-active { opacity: 1; transform: translateY(0); transition: all 0.4s var(--transition-luxury); }
+
+/* ── Input styles ── */
+.input-luxury {
+  border: 1px solid #EDE0C4;
+  background: white;
+  transition: all 0.2s ease;
+  font-family: var(--font-dm-sans);
+}
+.input-luxury:focus {
+  border-color: #D4AF6C;
+  box-shadow: 0 0 0 3px rgba(212,175,108,0.12);
+  outline: none;
+}
+
+/* ── Badge ── */
+.badge-new {
+  background: linear-gradient(135deg, #D4AF6C, #B8860B);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+}
+.badge-sale {
+  background: #1C1A17;
+  color: #D4AF6C;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+}
+
+/* ── Swiper overrides ── */
+.swiper-pagination-bullet-active {
+  background: #B8860B !important;
+}
+.swiper-button-next, .swiper-button-prev {
+  color: #B8860B !important;
+}
