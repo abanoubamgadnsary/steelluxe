@@ -3,11 +3,11 @@ import Stripe from 'stripe';
 import { updateOrderStatus } from '@/lib/db';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_placeholder', {
-  apiVersion: '2024-06-20',
+  apiVersion: '2024-04-10',
 });
 
 export async function POST(req: NextRequest) {
-  const body      = await req.text();
+  const body = await req.text();
   const signature = req.headers.get('stripe-signature') ?? '';
 
   let event: Stripe.Event;
