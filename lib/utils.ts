@@ -28,39 +28,39 @@ export function toSlug(text: string): string {
 // ─── Order number ─────────────────────────────────────────────────────────────
 export function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random    = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `SL-${timestamp}-${random}`;
 }
 
 // ─── Egypt governorates & shipping ───────────────────────────────────────────
 export const EGYPT_GOVERNORATES: ShippingZone[] = [
-  { governorate: 'Cairo',          cost: 60,  estimatedDays: '1-2' },
-  { governorate: 'Giza',           cost: 60,  estimatedDays: '1-2' },
-  { governorate: 'Alexandria',     cost: 70,  estimatedDays: '2-3' },
-  { governorate: 'Qalyubia',       cost: 60,  estimatedDays: '1-2' },
-  { governorate: 'Sharqia',        cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Dakahlia',       cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Beheira',        cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Gharbia',        cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Monufia',        cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Kafr El Sheikh', cost: 80,  estimatedDays: '2-3' },
-  { governorate: 'Damietta',       cost: 80,  estimatedDays: '2-3' },
-  { governorate: 'Port Said',      cost: 80,  estimatedDays: '2-3' },
-  { governorate: 'Ismailia',       cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Suez',           cost: 80,  estimatedDays: '2-3' },
-  { governorate: 'Sinai (North)',   cost: 100, estimatedDays: '3-5' },
-  { governorate: 'Sinai (South)',   cost: 100, estimatedDays: '3-5' },
-  { governorate: 'Red Sea',        cost: 90,  estimatedDays: '3-4' },
-  { governorate: 'Matrouh',        cost: 100, estimatedDays: '3-5' },
-  { governorate: 'Luxor',          cost: 90,  estimatedDays: '3-4' },
-  { governorate: 'Aswan',          cost: 100, estimatedDays: '4-5' },
-  { governorate: 'Sohag',          cost: 90,  estimatedDays: '3-4' },
-  { governorate: 'Qena',           cost: 90,  estimatedDays: '3-4' },
-  { governorate: 'Assiut',         cost: 85,  estimatedDays: '3-4' },
-  { governorate: 'Minya',          cost: 80,  estimatedDays: '2-3' },
-  { governorate: 'Beni Suef',      cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'Fayoum',         cost: 75,  estimatedDays: '2-3' },
-  { governorate: 'New Valley',     cost: 120, estimatedDays: '5-7' },
+  { governorate: 'Cairo', cost: 60, estimatedDays: '1-2' },
+  { governorate: 'Giza', cost: 60, estimatedDays: '1-2' },
+  { governorate: 'Alexandria', cost: 70, estimatedDays: '2-3' },
+  { governorate: 'Qalyubia', cost: 60, estimatedDays: '1-2' },
+  { governorate: 'Sharqia', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Dakahlia', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Beheira', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Gharbia', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Monufia', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Kafr El Sheikh', cost: 80, estimatedDays: '2-3' },
+  { governorate: 'Damietta', cost: 80, estimatedDays: '2-3' },
+  { governorate: 'Port Said', cost: 80, estimatedDays: '2-3' },
+  { governorate: 'Ismailia', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Suez', cost: 80, estimatedDays: '2-3' },
+  { governorate: 'Sinai (North)', cost: 100, estimatedDays: '3-5' },
+  { governorate: 'Sinai (South)', cost: 100, estimatedDays: '3-5' },
+  { governorate: 'Red Sea', cost: 90, estimatedDays: '3-4' },
+  { governorate: 'Matrouh', cost: 100, estimatedDays: '3-5' },
+  { governorate: 'Luxor', cost: 90, estimatedDays: '3-4' },
+  { governorate: 'Aswan', cost: 100, estimatedDays: '4-5' },
+  { governorate: 'Sohag', cost: 90, estimatedDays: '3-4' },
+  { governorate: 'Qena', cost: 90, estimatedDays: '3-4' },
+  { governorate: 'Assiut', cost: 85, estimatedDays: '3-4' },
+  { governorate: 'Minya', cost: 80, estimatedDays: '2-3' },
+  { governorate: 'Beni Suef', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'Fayoum', cost: 75, estimatedDays: '2-3' },
+  { governorate: 'New Valley', cost: 120, estimatedDays: '5-7' },
 ];
 
 export function getShippingCost(governorate: string): number {
@@ -81,14 +81,47 @@ export function getDiscountAmount(type: 'percentage' | 'fixed', value: number, t
 }
 
 // ─── Date ─────────────────────────────────────────────────────────────────────
-export function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat('en-EG', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateStr));
+// handles both strings AND Firestore Timestamps
+export function formatDate(dateInput: string | any): string {
+  try {
+    let date: Date;
+
+    // Handle Firestore Timestamp object
+    if (dateInput && typeof dateInput === 'object' && dateInput.toDate) {
+      date = dateInput.toDate(); // Firestore Timestamp has toDate() method
+    }
+    // Handle string dates
+    else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    }
+    // Handle regular Date objects
+    else if (dateInput instanceof Date) {
+      date = dateInput;
+    }
+    // Invalid input
+    else {
+      return 'Invalid date';
+    }
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+
+    return new Intl.DateTimeFormat('en-EG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
+  } catch {
+    return 'Invalid date';
+  }
 }
 
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 60)  return `${minutes}m ago`;
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
@@ -117,8 +150,8 @@ export const DEMO_PRODUCTS = [
     images: ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
     description: 'A beautifully twisted stainless steel band ring. Available in multiple sizes.', shortDescription: 'Twisted steel band ring',
     material: '316L Stainless Steel', sizes: [
-      {label:'5',inStock:true},{label:'6',inStock:true},{label:'7',inStock:true},
-      {label:'8',inStock:false},{label:'9',inStock:true},
+      { label: '5', inStock: true }, { label: '6', inStock: true }, { label: '7', inStock: true },
+      { label: '8', inStock: false }, { label: '9', inStock: true },
     ], tags: ['ring', 'band', 'minimal'], stock: 40, sold: 67, rating: 4.7, reviewCount: 28, isNew: true, isBestSeller: false, isFeatured: true,
   },
   {
@@ -148,7 +181,7 @@ export const DEMO_PRODUCTS = [
     images: ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
     description: 'Classic flat-top signet ring in brushed stainless steel. Timeless design.', shortDescription: 'Classic brushed signet ring',
     material: '316L Stainless Steel', sizes: [
-      {label:'6',inStock:true},{label:'7',inStock:true},{label:'8',inStock:true},{label:'9',inStock:true},
+      { label: '6', inStock: true }, { label: '7', inStock: true }, { label: '8', inStock: true }, { label: '9', inStock: true },
     ], tags: ['ring', 'signet', 'classic'], stock: 30, sold: 55, rating: 4.5, reviewCount: 19, isNew: false, isBestSeller: false, isFeatured: false,
   },
   {

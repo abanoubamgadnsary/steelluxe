@@ -10,20 +10,20 @@ import { formatPrice, formatDate } from '@/lib/utils';
 import type { Order } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:    'bg-amber-100 text-amber-700',
-  confirmed:  'bg-blue-100 text-blue-700',
+  pending: 'bg-amber-100 text-amber-700',
+  confirmed: 'bg-blue-100 text-blue-700',
   processing: 'bg-purple-100 text-purple-700',
-  shipped:    'bg-indigo-100 text-indigo-700',
-  delivered:  'bg-green-100 text-green-700',
-  cancelled:  'bg-red-100 text-red-700',
+  shipped: 'bg-indigo-100 text-indigo-700',
+  delivered: 'bg-green-100 text-green-700',
+  cancelled: 'bg-red-100 text-red-700',
 };
 
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading } = useAuthStore();
   const { logout } = useAuth();
-  const [orders, setOrders]       = useState<Order[]>([]);
-  const [ordersLoading, setOL]    = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOL] = useState(true);
   const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'wishlist'>('orders');
 
   useEffect(() => {
@@ -56,27 +56,36 @@ export default function AccountPage() {
             Hello, <em>{user.displayName.split(' ')[0]}</em>
           </h1>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-sm text-charcoal-500 hover:text-red-400 transition-colors font-body"
-        >
-          <LogOut size={16} /> Sign Out
-        </button>
+        <div className="flex items-center gap-3">
+          {user.role === 'admin' && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 px-4 py-2 bg-gold-gradient text-white rounded-full text-sm font-body font-medium hover:shadow-gold transition-all"
+            >
+              📊 Admin Dashboard
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-charcoal-500 hover:text-red-400 transition-colors font-body"
+          >
+            <LogOut size={16} /> Sign Out
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 bg-cream-100 p-1 rounded-2xl w-fit">
         {([
-          { key: 'orders',  label: 'Orders',  icon: Package },
-          { key: 'profile', label: 'Profile', icon: User    },
-          { key: 'wishlist',label: 'Wishlist',icon: Heart   },
+          { key: 'orders', label: 'Orders', icon: Package },
+          { key: 'profile', label: 'Profile', icon: User },
+          { key: 'wishlist', label: 'Wishlist', icon: Heart },
         ] as const).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-body font-medium transition-all ${
-              activeTab === key ? 'bg-white shadow-card text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-700'
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-body font-medium transition-all ${activeTab === key ? 'bg-white shadow-card text-charcoal-900' : 'text-charcoal-500 hover:text-charcoal-700'
+              }`}
           >
             <Icon size={15} /> {label}
           </button>
@@ -158,9 +167,9 @@ export default function AccountPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: 'Full Name',  value: user.displayName },
-              { label: 'Email',      value: user.email       },
-              { label: 'Phone',      value: user.phone ?? 'Not set' },
+              { label: 'Full Name', value: user.displayName },
+              { label: 'Email', value: user.email },
+              { label: 'Phone', value: user.phone ?? 'Not set' },
               { label: 'Member Since', value: formatDate(user.createdAt) },
             ].map(({ label, value }) => (
               <div key={label} className="p-4 bg-cream-50 rounded-xl">
