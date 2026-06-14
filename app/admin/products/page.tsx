@@ -6,35 +6,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
 import { DEMO_PRODUCTS, formatPrice, toSlug } from '@/lib/utils';
-import { createProduct, updateProduct, deleteProduct, uploadProductImage } from '@/lib/db';
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import type { Product, Category } from '@/types';
 import toast from 'react-hot-toast';
 
 const schema = z.object({
-  name:             z.string().min(2),
-  price:            z.number().positive(),
-  comparePrice:     z.number().optional(),
-  category:         z.enum(['necklaces', 'earrings', 'rings', 'bracelets']),
-  description:      z.string().min(10),
+  name: z.string().min(2),
+  price: z.number().positive(),
+  comparePrice: z.number().optional(),
+  category: z.enum(['necklaces', 'earrings', 'rings', 'bracelets']),
+  description: z.string().min(10),
   shortDescription: z.string().min(5),
-  material:         z.string().min(2),
-  stock:            z.number().int().min(0),
-  discount:         z.number().min(0).max(100).optional(),
-  isNew:            z.boolean(),
-  isBestSeller:     z.boolean(),
-  isFeatured:       z.boolean(),
+  material: z.string().min(2),
+  stock: z.number().int().min(0),
+  discount: z.number().min(0).max(100).optional(),
+  isNew: z.boolean(),
+  isBestSeller: z.boolean(),
+  isFeatured: z.boolean(),
 });
 type FormData = z.infer<typeof schema>;
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [search,   setSearch]   = useState('');
-  const [modalOpen, setModal]   = useState(false);
-  const [editing,  setEditing]  = useState<Product | null>(null);
-  const [images,   setImages]   = useState<string[]>([]);
-  const [uploading,setUploading]= useState(false);
-  const [saving,   setSaving]   = useState(false);
+  const [search, setSearch] = useState('');
+  const [modalOpen, setModal] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
@@ -42,11 +43,22 @@ export default function AdminProductsPage() {
     defaultValues: { isNew: false, isBestSeller: false, isFeatured: false, stock: 0, price: 0 },
   });
 
+  // ✅ بيقرأ من Firestore الحقيقي
   useEffect(() => {
-    const demo = DEMO_PRODUCTS.map((p, i) => ({
-      ...p, id: `p-${i}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    })) as Product[];
-    setProducts(demo);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const { products: firestoreProducts } = await getProducts({}, 100);
+        setProducts(firestoreProducts);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        toast.error('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const openCreate = () => {
@@ -94,7 +106,7 @@ export default function AdminProductsPage() {
         reviewCount: editing?.reviewCount ?? 0,
       };
       if (editing) {
-        await updateProduct(editing.id, productData).catch(() => {});
+        await updateProduct(editing.id, productData).catch(() => { });
         setProducts(ps => ps.map(p => p.id === editing.id ? { ...p, ...productData } as Product : p));
         toast.success('Product updated!');
       } else {
@@ -112,12 +124,26 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    // مش بيعمل redirect
     if (!confirm('Delete this product?')) return;
+
     try {
-      await deleteProduct(id).catch(() => {});
-      setProducts(ps => ps.filter(p => p.id !== id));
-      toast.success('Product deleted');
-    } catch { toast.error('Delete failed'); }
+      // امسح من Firestore
+      await deleteProduct(id).catch(() => { });
+
+      // امسح من الـ state مباشرة بدون reload
+      setProducts(prev => prev.filter(p => p.id !== id));
+
+      // لو المنتج المحذوف كان في المودال — اقفله
+      if (editing?.id === id) {
+        setEditing(null);
+        setModal(false);
+      }
+
+      toast.success('Product deleted successfully');
+    } catch {
+      toast.error('Failed to delete product');
+    }
   };
 
   const filtered = products.filter(p =>
@@ -193,9 +219,9 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-1 flex-wrap">
-                        {product.isNew        && <span className="badge-new text-2xs">New</span>}
-                        {product.isBestSeller && <span className="badge-new text-2xs" style={{background:'#1C1A17'}}>Best</span>}
-                        {product.isFeatured   && <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Featured</span>}
+                        {product.isNew && <span className="badge-new text-2xs">New</span>}
+                        {product.isBestSeller && <span className="badge-new text-2xs" style={{ background: '#1C1A17' }}>Best</span>}
+                        {product.isFeatured && <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Featured</span>}
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -260,7 +286,7 @@ export default function AdminProductsPage() {
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-charcoal-500 font-body mb-1.5">Category *</label>
                   <select {...register('category')} className="w-full input-luxury rounded-xl px-4 py-2.5 text-sm font-body appearance-none">
-                    {['necklaces','earrings','rings','bracelets'].map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
+                    {['necklaces', 'earrings', 'rings', 'bracelets'].map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
                   </select>
                 </div>
                 <div>

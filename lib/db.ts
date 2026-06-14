@@ -11,11 +11,11 @@ import { db, storage } from './firebase';
 import type { Product, Order, UserProfile, Review, Coupon, ProductFilters, AdminStats } from '@/types';
 
 // ─── Collections ──────────────────────────────────────────────────────────────
-const PRODUCTS  = 'products';
-const ORDERS    = 'orders';
-const USERS     = 'users';
-const REVIEWS   = 'reviews';
-const COUPONS   = 'coupons';
+const PRODUCTS = 'products';
+const ORDERS = 'orders';
+const USERS = 'users';
+const REVIEWS = 'reviews';
+const COUPONS = 'coupons';
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
@@ -29,22 +29,22 @@ export async function getProducts(filters: ProductFilters = {}, pageSize = 12, l
   if (filters.maxPrice !== undefined) constraints.push(where('price', '<=', filters.maxPrice));
 
   const sortMap: Record<string, [string, 'asc' | 'desc']> = {
-    newest:     ['createdAt', 'desc'],
-    'price-asc':['price', 'asc'],
-    'price-desc':['price', 'desc'],
-    popular:    ['sold', 'desc'],
-    rating:     ['rating', 'desc'],
+    newest: ['createdAt', 'desc'],
+    'price-asc': ['price', 'asc'],
+    'price-desc': ['price', 'desc'],
+    popular: ['sold', 'desc'],
+    rating: ['rating', 'desc'],
   };
   const [sortField, sortDir] = sortMap[filters.sortBy ?? 'newest'] ?? ['createdAt', 'desc'];
   constraints.push(orderBy(sortField, sortDir), limit(pageSize));
   if (lastDoc) constraints.push(startAfter(lastDoc));
 
-  const q   = query(collection(db, PRODUCTS), ...constraints);
+  const q = query(collection(db, PRODUCTS), ...constraints);
   const snap = await getDocs(q);
   return {
     products: snap.docs.map(d => ({ id: d.id, ...d.data() } as Product)),
-    lastDoc:  snap.docs[snap.docs.length - 1],
-    hasMore:  snap.docs.length === pageSize,
+    lastDoc: snap.docs[snap.docs.length - 1],
+    hasMore: snap.docs.length === pageSize,
   };
 }
 
@@ -137,7 +137,7 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
   for (const item of order.items) {
     await updateDoc(doc(db, PRODUCTS, item.productId), {
       stock: increment(-item.quantity),
-      sold:  increment(item.quantity),
+      sold: increment(item.quantity),
     });
   }
   return ref.id;
@@ -243,12 +243,12 @@ export async function getAdminStats(): Promise<AdminStats> {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const todayOrders = orders.filter(o => new Date(o.createdAt) >= today);
   return {
-    totalOrders:   orders.length,
-    totalRevenue:  orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0),
+    totalOrders: orders.length,
+    totalRevenue: orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.total, 0),
     totalProducts: productsSnap.size,
-    totalUsers:    usersSnap.size,
+    totalUsers: usersSnap.size,
     pendingOrders: orders.filter(o => o.status === 'pending').length,
-    revenueToday:  todayOrders.reduce((s, o) => s + o.total, 0),
-    ordersToday:   todayOrders.length,
+    revenueToday: todayOrders.reduce((s, o) => s + o.total, 0),
+    ordersToday: todayOrders.length,
   };
 }

@@ -3,21 +3,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import ProductGrid from '@/components/product/ProductGrid';
-import { DEMO_PRODUCTS } from '@/lib/utils';
 import type { Product } from '@/types';
+import { getBestSellers } from '@/lib/db';
 
 export default function BestSellersSection() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading,  setLoading]  = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      const demo = DEMO_PRODUCTS.filter(p => p.isBestSeller).slice(0, 4).map((p, i) => ({
-        ...p, id: `bs-${i}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-      })) as Product[];
-      setProducts(demo);
-      setLoading(false);
-    }, 400);
+    getBestSellers()
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   return (

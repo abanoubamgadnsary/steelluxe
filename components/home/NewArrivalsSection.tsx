@@ -3,22 +3,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import ProductGrid from '@/components/product/ProductGrid';
-import { DEMO_PRODUCTS } from '@/lib/utils';
 import type { Product } from '@/types';
+import { getNewArrivals } from '@/lib/db';
 
 export default function NewArrivalsSection() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading,  setLoading]  = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Use demo data; in production this would call getNewArrivals()
-    setTimeout(() => {
-      const demo = DEMO_PRODUCTS.filter(p => p.isNew).slice(0, 4).map((p, i) => ({
-        ...p, id: `demo-${i}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-      })) as Product[];
-      setProducts(demo);
-      setLoading(false);
-    }, 600);
+    getNewArrivals()
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
