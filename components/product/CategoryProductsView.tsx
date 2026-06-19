@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
 import ProductGrid from "@/components/product/ProductGrid";
 import { getProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
@@ -24,43 +24,32 @@ const SORT_OPTIONS = [
   { label: "Top Rated", value: "rating" },
 ];
 
-function ProductsContent() {
-  const searchParams = useSearchParams();
+export default function CategoryProductsView({
+  category,
+}: {
+  category: string;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<ProductFilters>({
-    category: (searchParams.get("category") as Category) ?? "all",
-    sortBy: "newest",
-  });
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState<Category | "all">(
+    category as Category,
+  );
+  const [sortBy, setSortBy] = useState<ProductFilters["sortBy"]>("newest");
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const search = searchParams.get("search");
-        const filter = searchParams.get("filter");
-
-        // جيب كل المنتجات أولاً
+        const filters: ProductFilters = {
+          ...(activeCat !== "all" ? { category: activeCat } : {}),
+          sortBy,
+          ...(priceRange
+            ? { minPrice: priceRange[0], maxPrice: priceRange[1] }
+            : {}),
+        };
         const { products: firestoreProducts } = await getProducts(filters, 100);
-
-        let filtered = [...firestoreProducts];
-
-        // فلتر بعد الجلب
-        if (search) {
-          filtered = filtered.filter(
-            (p) =>
-              p.name.toLowerCase().includes(search.toLowerCase()) ||
-              p.description?.toLowerCase().includes(search.toLowerCase()),
-          );
-        }
-        if (filter === "new")
-          filtered = filtered.filter((p) => p.isNew === true);
-        if (filter === "bestseller")
-          filtered = filtered.filter((p) => p.isBestSeller === true);
-        if (filter === "sale") filtered = filtered.filter((p) => !!p.discount);
-
-        setProducts(filtered);
+        setProducts(firestoreProducts);
       } catch (err) {
         console.error("Failed to fetch products:", err);
       } finally {
@@ -69,43 +58,23 @@ function ProductsContent() {
     };
 
     fetchProducts();
-  }, [filters, searchParams]);
-
-  const search = searchParams.get("search");
-  const filter = searchParams.get("filter");
+  }, [activeCat, sortBy, priceRange]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Page header */}
-      <div className="mb-8">
-        <p className="text-2xs tracking-[0.3em] uppercase text-gold-500 mb-1 font-body">
-          Collection
-        </p>
-        <h1 className="font-display text-4xl sm:text-5xl text-charcoal-900 font-light">
-          {search
-            ? `"${search}"`
-            : filter === "new"
-              ? "New Arrivals"
-              : filter === "sale"
-                ? "Sale"
-                : filter === "bestseller"
-                  ? "Best Sellers"
-                  : "All Jewelry"}
-        </h1>
-        <p className="text-sm text-charcoal-400 mt-2 font-body">
-          {products.length} pieces
-        </p>
-      </div>
+      <p className="text-sm text-charcoal-400 mb-6 font-body">
+        {products.length} pieces
+      </p>
 
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.value}
-            onClick={() => setFilters((f) => ({ ...f, category: cat.value }))}
+            onClick={() => setActiveCat(cat.value)}
             className={cn(
               "px-5 py-2 rounded-full text-xs tracking-widest uppercase whitespace-nowrap transition-all duration-200 font-body font-medium",
-              filters.category === cat.value
+              activeCat === cat.value
                 ? "bg-charcoal-900 text-cream-50"
                 : "bg-cream-200 text-charcoal-600 hover:bg-cream-300",
             )}
@@ -116,7 +85,7 @@ function ProductsContent() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar filters — desktop */}
+        {/* Sidebar */}
         <aside className="hidden lg:block w-56 shrink-0">
           <div className="sticky top-24 space-y-6">
             <div>
@@ -128,14 +97,11 @@ function ProductsContent() {
                   <li key={opt.value}>
                     <button
                       onClick={() =>
-                        setFilters((f) => ({
-                          ...f,
-                          sortBy: opt.value as ProductFilters["sortBy"],
-                        }))
+                        setSortBy(opt.value as ProductFilters["sortBy"])
                       }
                       className={cn(
                         "w-full text-left px-3 py-2 text-sm rounded-lg transition-colors font-body",
-                        filters.sortBy === opt.value
+                        sortBy === opt.value
                           ? "bg-cream-200 text-charcoal-900 font-medium"
                           : "text-charcoal-600 hover:bg-cream-100",
                       )}
@@ -162,16 +128,10 @@ function ProductsContent() {
                 ].map(([min, max]) => (
                   <button
                     key={`${min}-${max}`}
-                    onClick={() =>
-                      setFilters((f) => ({
-                        ...f,
-                        minPrice: min,
-                        maxPrice: max,
-                      }))
-                    }
+                    onClick={() => setPriceRange([min, max])}
                     className={cn(
                       "w-full text-left px-3 py-2 text-sm rounded-lg transition-colors font-body",
-                      filters.minPrice === min && filters.maxPrice === max
+                      priceRange?.[0] === min && priceRange?.[1] === max
                         ? "bg-cream-200 text-charcoal-900 font-medium"
                         : "text-charcoal-600 hover:bg-cream-100",
                     )}
@@ -180,13 +140,7 @@ function ProductsContent() {
                   </button>
                 ))}
                 <button
-                  onClick={() =>
-                    setFilters((f) => ({
-                      ...f,
-                      minPrice: undefined,
-                      maxPrice: undefined,
-                    }))
-                  }
+                  onClick={() => setPriceRange(null)}
                   className="text-xs text-gold-500 hover:text-gold-600 transition-colors font-body"
                 >
                   Clear price filter
@@ -198,22 +152,12 @@ function ProductsContent() {
 
         {/* Main grid */}
         <div className="flex-1 min-w-0">
-          {/* Mobile filter bar */}
+          {/* Mobile sort */}
           <div className="lg:hidden flex items-center gap-3 mb-6">
-            <button
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className="flex items-center gap-2 px-4 py-2 border border-cream-300 rounded-full text-sm text-charcoal-700 hover:border-gold-400 transition-colors font-body"
-            >
-              <SlidersHorizontal size={16} />
-              Filters
-            </button>
             <select
-              value={filters.sortBy}
+              value={sortBy}
               onChange={(e) =>
-                setFilters((f) => ({
-                  ...f,
-                  sortBy: e.target.value as ProductFilters["sortBy"],
-                }))
+                setSortBy(e.target.value as ProductFilters["sortBy"])
               }
               className="flex-1 px-4 py-2 border border-cream-300 rounded-full text-sm text-charcoal-700 bg-white focus:border-gold-400 focus:outline-none font-body appearance-none"
             >
@@ -228,10 +172,10 @@ function ProductsContent() {
           {products.length === 0 && !loading ? (
             <div className="text-center py-24">
               <p className="font-display text-3xl text-charcoal-400 mb-3">
-                No results found
+                No products in this category yet
               </p>
               <p className="text-charcoal-400 text-sm font-body">
-                Try adjusting your filters or search term
+                Check back soon!
               </p>
             </div>
           ) : (
@@ -240,19 +184,5 @@ function ProductsContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ProductsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center py-24">
-          <div className="skeleton w-24 h-4 rounded" />
-        </div>
-      }
-    >
-      <ProductsContent />
-    </Suspense>
   );
 }

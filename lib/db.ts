@@ -51,15 +51,18 @@ export async function getProducts(
   lastDoc?: DocumentSnapshot,
 ) {
   const constraints: QueryConstraint[] = [];
+
   if (filters.category && filters.category !== "all") {
     constraints.push(where("category", "==", filters.category));
   }
-  if (filters.inStock) constraints.push(where("stock", ">", 0));
-  if (filters.minPrice !== undefined)
+  if (filters.minPrice !== undefined) {
     constraints.push(where("price", ">=", filters.minPrice));
-  if (filters.maxPrice !== undefined)
+  }
+  if (filters.maxPrice !== undefined) {
     constraints.push(where("price", "<=", filters.maxPrice));
+  }
 
+  // Sort
   const sortMap: Record<string, [string, "asc" | "desc"]> = {
     newest: ["createdAt", "desc"],
     "price-asc": ["price", "asc"],
@@ -72,10 +75,12 @@ export async function getProducts(
     "desc",
   ];
   constraints.push(orderBy(sortField, sortDir), limit(pageSize));
+
   if (lastDoc) constraints.push(startAfter(lastDoc));
 
-  const q = query(collection(db, PRODUCTS), ...constraints);
+  const q = query(collection(db, "products"), ...constraints);
   const snap = await getDocs(q);
+
   return {
     products: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product),
     lastDoc: snap.docs[snap.docs.length - 1],

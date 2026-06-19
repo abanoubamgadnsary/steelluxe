@@ -1,25 +1,33 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 const CATEGORIES = [
   {
-    name: 'Necklaces', slug: 'necklaces', count: '42 styles',
-    img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80',
-    size: 'large',
+    name: "Necklaces",
+    slug: "necklaces",
+    count: "42 styles",
+    img: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80",
+    size: "large",
   },
   {
-    name: 'Earrings',  slug: 'earrings',  count: '38 styles',
-    img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=800&q=80',
-    size: 'small',
+    name: "Earrings",
+    slug: "earrings",
+    count: "38 styles",
+    img: "https://images.unsplash.com/photo-1630019852942-f89202989a59?w=800&q=80",
+    size: "small",
   },
   {
-    name: 'Rings',     slug: 'rings',     count: '24 styles',
-    img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80',
-    size: 'small',
+    name: "Rings",
+    slug: "rings",
+    count: "24 styles",
+    img: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80",
+    size: "small",
   },
   {
-    name: 'Bracelets', slug: 'bracelets', count: '19 styles',
-    img: 'https://images.unsplash.com/photo-1573408301185-9519f94816b5?w=800&q=80',
-    size: 'wide',
+    name: "Bracelets",
+    slug: "bracelets",
+    count: "19 styles",
+    img: "https://images.unsplash.com/photos/a-silver-bracelet-with-hearts-and-two-red-stones-mkqraXkMPSE?w=800&q=80",
+    size: "wide",
   },
 ];
 
@@ -28,7 +36,9 @@ export default function CategoriesSection() {
     <section className="py-16 sm:py-24 bg-cream-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <p className="text-2xs tracking-[0.3em] uppercase text-gold-500 mb-2 font-body">Browse by</p>
+          <p className="text-2xs tracking-[0.3em] uppercase text-gold-500 mb-2 font-body">
+            Browse by
+          </p>
           <h2 className="font-display text-4xl sm:text-5xl text-charcoal-900 font-light">
             Shop by <em>Category</em>
           </h2>
@@ -37,7 +47,11 @@ export default function CategoriesSection() {
         {/* Desktop editorial grid */}
         <div className="hidden md:grid grid-cols-12 gap-4">
           {/* Necklaces — large */}
-          <CategoryCard cat={CATEGORIES[0]} className="col-span-5 row-span-2" tall />
+          <CategoryCard
+            cat={CATEGORIES[0]}
+            className="col-span-5 row-span-2"
+            tall
+          />
           {/* Earrings */}
           <CategoryCard cat={CATEGORIES[1]} className="col-span-4" />
           {/* Rings */}
@@ -48,7 +62,9 @@ export default function CategoriesSection() {
 
         {/* Mobile: 2-col grid */}
         <div className="md:hidden grid grid-cols-2 gap-3">
-          {CATEGORIES.map(cat => <CategoryCard key={cat.slug} cat={cat} />)}
+          {CATEGORIES.map((cat) => (
+            <CategoryCard key={cat.slug} cat={cat} />
+          ))}
         </div>
       </div>
     </section>
@@ -56,12 +72,18 @@ export default function CategoriesSection() {
 }
 
 function CategoryCard({
-  cat, className = '', tall = false,
-}: { cat: typeof CATEGORIES[0]; className?: string; tall?: boolean }) {
+  cat,
+  className = "",
+  tall = false,
+}: {
+  cat: (typeof CATEGORIES)[0];
+  className?: string;
+  tall?: boolean;
+}) {
   return (
     <Link
       href={`/category/${cat.slug}`}
-      className={`group relative overflow-hidden rounded-2xl block ${className} ${tall ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}
+      className={`group relative overflow-hidden rounded-2xl block ${className} ${tall ? "aspect-[3/4]" : "aspect-[4/3]"}`}
     >
       <img
         src={cat.img}
@@ -80,8 +102,12 @@ function CategoryCard({
           {cat.name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-cream-300/70 font-body">{cat.count}</span>
-          <span className="text-gold-400 opacity-0 group-hover:opacity-100 transition-all duration-300 text-xs">→ Shop Now</span>
+          <span className="text-xs text-cream-300/70 font-body">
+            {cat.count}
+          </span>
+          <span className="text-gold-400 opacity-0 group-hover:opacity-100 transition-all duration-300 text-xs">
+            → Shop Now
+          </span>
         </div>
       </div>
     </Link>
