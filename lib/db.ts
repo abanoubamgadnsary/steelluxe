@@ -251,12 +251,15 @@ export async function deleteProductImage(url: string): Promise<void> {
 export async function createOrder(
   order: Omit<Order, "id" | "createdAt" | "updatedAt">,
 ): Promise<string> {
+  // ✅ شيل أي undefined values قبل ما تبعتهم لـ Firestore
+  const cleanOrder = JSON.parse(JSON.stringify(order));
+
   const ref = await addDoc(collection(db, ORDERS), {
-    ...order,
+    ...cleanOrder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  // Decrease stock for each item
+
   for (const item of order.items) {
     await updateDoc(doc(db, PRODUCTS, item.productId), {
       stock: increment(-item.quantity),

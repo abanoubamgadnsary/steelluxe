@@ -26,7 +26,7 @@ const CATEGORIES = [
     name: "Bracelets",
     slug: "bracelets",
     count: "19 styles",
-    img: "https://images.unsplash.com/photos/a-silver-bracelet-with-hearts-and-two-red-stones-mkqraXkMPSE?w=800&q=80",
+    img: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80",
     size: "wide",
   },
 ];
