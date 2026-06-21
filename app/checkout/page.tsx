@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Image from "next/image";
+import { generateWhatsAppLink } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import {
   CreditCard,
@@ -96,12 +97,13 @@ export default function CheckoutPage() {
           ? Math.round(i.product.price * (1 - i.product.discount / 100))
           : i.product.price,
         quantity: i.quantity,
-        // ✅ استخدم null بدل undefined
         selectedSize: i.selectedSize || undefined,
       }));
 
+      const generatedOrderNumber = generateOrderNumber();
+
       const orderId = await createOrder({
-        orderNumber: generateOrderNumber(),
+        orderNumber: generatedOrderNumber,
         userId: user.uid,
         userEmail: user.email,
         items: orderItems,
@@ -109,7 +111,6 @@ export default function CheckoutPage() {
           fullName: data.fullName,
           phone: data.phone,
           addressLine1: data.addressLine1,
-          // ✅ استخدم null بدل undefined
           addressLine2: data.addressLine2 || undefined,
           city: data.city,
           governorate: data.governorate,
@@ -121,12 +122,36 @@ export default function CheckoutPage() {
         discount: disc,
         shippingCost: sub >= 1500 ? 0 : ship,
         total: tot,
-        // ✅ استخدم null بدل undefined
         couponCode: couponCode || undefined,
         notes: data.notes || undefined,
       });
 
       clearCart();
+
+      // ✅ ميزة 1 — افتح WhatsApp تلقائي
+      const whatsappLink = generateWhatsAppLink(
+        data.phone,
+        generatedOrderNumber,
+        tot,
+      );
+      window.open(whatsappLink, "_blank");
+
+      // ✅ ميزة 2 — بعت إيميل تنبيه للأدمن
+      fetch("/api/notify-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderNumber: generatedOrderNumber,
+          customerName: data.fullName,
+          customerPhone: data.phone,
+          customerEmail: user.email,
+          total: tot,
+          items: orderItems,
+        }),
+      }).catch((err) =>
+        console.error("Failed to send admin notification:", err),
+      );
+
       router.push(`/order-confirmation?id=${orderId}`);
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
